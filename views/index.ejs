@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>qnect</title>
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <script src="//code.iconify.design/1/1.0.6/iconify.min.js"></script>
+</head>
+<body x-data="data()">
+    <div class="hero">
+        <h1><svg style="width:24px;height:24px" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19 16H22L12 7L2 16H5L12 9.69L19 16M7 8.81V7H4V11.5L7 8.81Z" />
+        </svg>qnect</h1>
+    </div>
+    <div class="sides">
+        <p>Authenticated as George</p>
+        <div class="links">
+            <a href="a">Sign Out</a>
+            <a href="a">Admin</a>
+        </div>
+    </div>
+    <main>
+        <template x-for="item in Object.values(entities)">
+            <div class="entity-card">
+                <div class="icon">
+                    <span class="iconify" x-bind:data-icon="getIcon(item.type)" x-bind:color="`rgb(${item.color.join(',')})`"></span>
+                </div>
+                <div class="text">
+                    <h3 x-text="item.name">loading...</h3>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" @click="setState(item.softwareName, item.state == 'off' ? 'on' : 'off')" x-bind:checked="item.state == 'off' ? false : true">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </template>
+    </main>
+</body>
+<script>
+    function data() {
+        return {
+            entities: JSON.parse(`<%- JSON.stringify(entities) %>`),
+            getIcon(type) {
+                switch (type) {
+                    case 'light':
+                        return 'mdi-lightbulb';
+                    case 'switch':
+                        return 'mdi-flash';
+                }
+            },
+            setState(entity, state) {
+                fetch('/changeState', {
+                    body: JSON.stringify({entity, state}),
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+            }
+        }
+    }
+</script>
+<style>
+    html {
+        display: flex;
+        justify-content: center;
+    }
+    body {
+        background-color: rgb(236, 236, 236);
+        margin: 0;
+        font: normal normal 16px/1.4 Tahoma;
+        width: 100vw;
+        max-width: 900px;
+    }
+    main {
+        width: 95%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    h1, h3, p, a {
+        margin: 5px
+    }
+    .entity-card {
+        width: 100%;
+        margin-bottom: 10px;
+        background-color: white;
+        border-radius: 7px;
+        border: 1px black;
+        height: 9vh;
+        display: flex;
+        position: relative;
+        justify-content: flex-end;
+        align-items: center;
+        min-height: 80px;
+        box-sizing: border-box;
+        padding-right: 1vw;
+        
+    }
+    .entity-card>.text {
+        position: absolute;
+        bottom: 0.25vh;
+        left: 0.5vh;
+    }
+    .entity-card>.icon {
+        position: absolute;
+        top: 0.75vh;
+        left: 0.5vh;
+    }
+    .iconify {
+        height: 3ch !important;
+        width: 3ch !important;
+    }
+    .hero {
+        height: 15vh;
+        background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        display: flex;
+        align-items: flex-end;
+    }
+    .sides {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    input:checked + .slider {
+       background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+       box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+       -webkit-transform: translateX(21px);
+       -ms-transform: translateX(21px);
+       transform: translateX(21px);
+    }
+
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+</style>
+</html>

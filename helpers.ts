@@ -134,6 +134,27 @@ class Hass extends EventEmitter {
             throw new Error('Not connected to Home Assistant')
         }
     }
+
+    setState(entity: string, state: string) {
+        console.log(state, {
+            id: this.lastId++,
+            type: "call_service",
+            domain: entity.split('.')[0],
+            service: state == 'on' ? 'turn_on' : 'turn_off',
+            service_data: {
+                entity_id: entity
+            }
+        })
+        this.wsSend({
+            id: this.lastId++,
+            type: "call_service",
+            domain: entity.split('.')[0],
+            service: state == 'on' ? 'turn_on' : 'turn_off',
+            service_data: {
+                entity_id: entity
+            }
+        })
+    }
 }
 
 export {Config, Hass, StateChange}
