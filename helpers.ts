@@ -1,8 +1,18 @@
 import fs from 'fs'
-///<reference types="ws" />
 const WebSocket = require('ws');
 import EventEmitter from 'events'
 import YAML from 'yaml'
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+
+
+const User = mongoose.model('users', {
+    //@ts-ignore
+    username: String,
+    password: String,
+    meta: Object,
+    permissions: Array
+})
 
 class Config {
     private _config
@@ -63,6 +73,7 @@ class Hass extends EventEmitter {
     }
 
     private wsSend(object: any) {
+        this.lastId += 1;
         this._ws.send(JSON.stringify(object))
     }
 
@@ -74,7 +85,8 @@ class Hass extends EventEmitter {
 
     private handleMessage(m: string) {
         const msg: HassMessage = JSON.parse(m)
-        msg.id ? this.lastId = msg.id : null;
+
+        // console.log(msg)
 
         switch (msg.type) {
             case 'auth_required':
@@ -135,21 +147,12 @@ class Hass extends EventEmitter {
         }
     }
 
-    setState(entity: string, state: string) {
-        console.log(state, {
-            id: this.lastId++,
-            type: "call_service",
-            domain: entity.split('.')[0],
-            service: state == 'on' ? 'turn_on' : 'turn_off',
-            service_data: {
-                entity_id: entity
-            }
-        })
+    setState(entity: string, state: string)  {
         this.wsSend({
             id: this.lastId++,
             type: "call_service",
             domain: entity.split('.')[0],
-            service: state == 'on' ? 'turn_on' : 'turn_off',
+            service: 'toggle',
             service_data: {
                 entity_id: entity
             }
@@ -157,4 +160,4 @@ class Hass extends EventEmitter {
     }
 }
 
-export {Config, Hass, StateChange}
+export {Config, Hass, StateChange, User}
