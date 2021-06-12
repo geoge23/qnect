@@ -90,7 +90,7 @@ import bc from 'bcrypt'
     app.post('/changeState', requireLogin, express.json(), (req, res) => {
         const { entity, state } = req.body;
         //@ts-ignore
-        if (!req.user.permissions.includes(`qnect.${entity}`)) {
+        if (req.user.permissions.includes('qnect.user') && !req.user.permissions.includes(`qnect.${entity}`)) {
             res.status(403).send('User does not have permission for this entity')
             return;
         }
