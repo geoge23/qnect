@@ -82,6 +82,11 @@ class Hass extends EventEmitter {
         this._ws = new WebSocket(host)
         this._key = key
         this._ws.on('message', ((m) => this.handleMessage(m)).bind(this))
+        this._ws.on('error', ((e) => {
+            console.log(`Error ${e} occurred on WebSocket, attempting to reconnect`)
+            this.lastId = 1;
+            this._ws = new WebSocket(host);
+        }).bind(this))
     }
 
     private handleMessage(m: string) {

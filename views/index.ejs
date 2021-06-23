@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script src="//code.iconify.design/1/1.0.6/iconify.min.js"></script>
     <link rel="shortcut icon" href="qnect.png" type="image/png">
+    <link rel="apple-touch-icon" href="qnect.png" />
 </head>
 <body x-data="data()" x-init="onInit()">
     <div class="hero">
@@ -131,7 +132,8 @@
     body {
         background-color: rgb(236, 236, 236);
         margin: 0;
-        font: normal normal 16px/1.4 Tahoma;
+        font: normal normal 16px/1.4;
+        font-family: 'Tahoma', sans-serif;
         width: 100vw;
         max-width: 900px;
     }
