@@ -1,5 +1,5 @@
 import express from 'express'
-import { Config, Hass, StateChange, User} from './helpers'
+import { Config, Hass, StateChange, User, SWITCHABLE_ENTITIES } from './helpers'
 import mongoose from 'mongoose'
 import JWT from 'jsonwebtoken'
 import cparse from 'cookie-parser'
@@ -9,6 +9,7 @@ import bc from 'bcrypt'
     const app = express()
     app.set('view engine', 'ejs');
     app.use(cparse())
+    app.use(express.static('public'))
 
     const config = new Config()
     const state = {
@@ -51,13 +52,30 @@ import bc from 'bcrypt'
     })
 
     ha.on('change', (e: StateChange) => {
-        setEntityState(e.entity, {
-            name: e.attributes.friendly_name,
-            type: e.entity.split('.')[0],
-            state: coerceToBinaryStatus(e.state),  
-            softwareName: e.entity,
-            color: e.attributes.rgb_color || (e.state === 'on' ? [218,205,17] : [0,0,0])
-        })
+        const type = e.entity.split('.')[0];
+        if (SWITCHABLE_ENTITIES.has(type)) {
+            setEntityState(e.entity, {
+                name: e.attributes.friendly_name,
+                type,
+                state: coerceToBinaryStatus(e.state),
+                softwareName: e.entity,
+                color: e.attributes.rgb_color || (e.state === 'on' ? [218,205,17] : [0,0,0])
+            })
+        } else if (type == 'climate') {
+            setEntityState(e.entity, {
+                name: e.attributes.friendly_name,
+                type,
+                state: {
+                    mode: e.state,
+                    possibleModes: e.attributes.hvac_modes,
+                    temp: e.attributes.temperature
+                },
+                softwareName: e.entity,
+                color: e.state == 'cool' ? [9, 119, 230] : e.state == 'off' ? [0,0,0] : [204, 28, 8]
+            })
+        } else {
+            throw new Error(`Unimplemented entity type ${type}`)
+        }
     })
 
     app.get('/', requireLogin, (req, res) => {
@@ -87,14 +105,25 @@ import bc from 'bcrypt'
         res.redirect('/login')
     })
 
-    app.post('/changeState', requireLogin, express.json(), (req, res) => {
+    app.post('/state/switchable', requireLogin, express.json(), (req, res) => {
         const { entity, state } = req.body;
         //@ts-ignore
         if (req.user.permissions.includes('qnect.user') && !req.user.permissions.includes(`qnect.${entity}`)) {
             res.status(403).send('User does not have permission for this entity')
             return;
         }
-        ha.setState(entity, state)
+        ha.toggleSwitchable(entity)
+        res.status(200).send()
+    })
+
+    app.post('/state/climate', requireLogin, express.json(), (req, res) => {
+        const { entity, temp, mode } = req.body;
+        if (temp) {
+            ha.setClimateTemperature(entity, temp)
+        }
+        if (mode) {
+            ha.setClimateMode(entity, mode)
+        }
         res.status(200).send()
     })
 

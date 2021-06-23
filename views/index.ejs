@@ -7,6 +7,7 @@
     <title>qnect</title>
     <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
     <script src="//code.iconify.design/1/1.0.6/iconify.min.js"></script>
+    <link rel="shortcut icon" href="qnect.png" type="image/png">
 </head>
 <body x-data="data()" x-init="onInit()">
     <div class="hero">
@@ -34,10 +35,28 @@
                 <div class="text">
                     <h3 x-text="item.name">loading...</h3>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" @click.prevent="setState(item.softwareName, item.state == 'off' ? 'on' : 'off')" x-model:checked="item.state == 'off' ? false : true">
-                    <span class="slider round"></span>
-                </label>
+                <template x-if="switchableEntities.has(item.type)">
+                    <label class="switch">
+                        <input type="checkbox" @click.prevent="setState(item.softwareName, item.state == 'off' ? 'on' : 'off')" x-model:checked="item.state == 'off' ? false : true">
+                        <span class="slider round"></span>
+                    </label>
+                </template>
+                <template x-if="item.type == 'climate'">
+                    <div class="therm">
+                        <div class="button-div" @click="changeClimate(item.softwareName, 1)">
+                            <span class="iconify" data-icon="mdi-arrow-up"></span>
+                        </div>
+                        <p x-text="`${item.state.temp}°`"></p>
+                        <div class="button-div" @click="changeClimate(item.softwareName, -1)">
+                            <span class="iconify" data-icon="mdi-arrow-down"></span>
+                        </div>
+                        <select @change="changeClimateMode(item.softwareName, $event)">
+                            <template x-for="mode in item.state.possibleModes">
+                                <option x-bind:selected="item.state.mode === mode" x-bind:value="mode" x-text="mode"></option>
+                            </template>
+                        </select>
+                    </div>
+                </template>
             </div>
         </template>
     </main>
@@ -58,6 +77,8 @@
                         return 'mdi-flash';
                     case 'cover':
                         return 'mdi-garage';
+                    case 'climate':
+                        return 'mdi-thermostat';
                 }
             },
             onInit() {
@@ -67,19 +88,29 @@
                     this.entities[e.softwareName] = e;
                 }
             },
-            async setState(entity, state) {
+            async makePostRequest(url, body) {
                 try {
-                    const e = await fetch('/changeState', {
-                        body: JSON.stringify({entity, state}),
+                    const e = await fetch(url, {
+                        body: JSON.stringify(body),
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     })
                     if (e.status == 403) this.showSnackbar("You are not permitted to perform that action")
+                    return e;
                 } catch (e) {
                     console.log(e)
                 }
+            },
+            async setState(entity, state) {
+                await this.makePostRequest('/state/switchable', {entity, state})
+            },
+            async changeClimate(entity, change) {
+                await this.makePostRequest('/state/climate', {entity, temp: this.entities[entity].state.temp + change})
+            },
+            async changeClimateMode(entity, e) {
+                await this.makePostRequest('/state/climate', {entity, mode: e.srcElement.value})
             },
             showSnackbar(text, delay=2000) {
                 this.snackbar.message = text;
@@ -87,7 +118,8 @@
                 setTimeout(() => {
                     this.snackbar.open = false
                 }, delay)
-            }
+            },
+            switchableEntities: new Set(['switch', 'cover', 'light'])
         }
     }
 </script>
@@ -110,6 +142,15 @@
     }
     h1, h3, p, a {
         margin: 5px
+    }
+    .therm {
+        display: flex;
+    }
+    .therm > select {
+        margin-left: 10px;
+    }
+    .button-div {
+        cursor: pointer;
     }
     @keyframes slidein {
         0% {

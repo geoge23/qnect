@@ -5,6 +5,7 @@ import YAML from 'yaml'
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
+const SWITCHABLE_ENTITIES = new Set(['switch', 'cover', 'light']);
 
 const User = mongoose.model('users', {
     //@ts-ignore
@@ -86,7 +87,6 @@ class Hass extends EventEmitter {
     private handleMessage(m: string) {
         const msg: HassMessage = JSON.parse(m)
 
-        // console.log(msg)
 
         switch (msg.type) {
             case 'auth_required':
@@ -147,7 +147,7 @@ class Hass extends EventEmitter {
         }
     }
 
-    setState(entity: string, state: string)  {
+    toggleSwitchable(entity: string)  {
         this.wsSend({
             id: this.lastId++,
             type: "call_service",
@@ -158,6 +158,32 @@ class Hass extends EventEmitter {
             }
         })
     }
+
+    setClimateMode(entity: string, mode: string) {
+        this.wsSend({
+            id: this.lastId++,
+            type: "call_service",
+            domain: entity.split('.')[0],
+            service: 'set_hvac_mode',
+            service_data: {
+                entity_id: entity,
+                hvac_mode: mode
+            }
+        })
+    }
+
+    setClimateTemperature(entity: string, temperature: number) {
+        this.wsSend({
+            id: this.lastId++,
+            type: "call_service",
+            domain: entity.split('.')[0],
+            service: 'set_temperature',
+            service_data: {
+                entity_id: entity,
+                temperature
+            }
+        })
+    }
 }
 
-export {Config, Hass, StateChange, User}
+export {Config, Hass, StateChange, User, SWITCHABLE_ENTITIES}
