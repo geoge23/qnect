@@ -45,7 +45,7 @@ This entry should be in a collection called users in your database
 {
     "permissions": [],
     "username": "your-username",
-    "password": "password encrypted with bcrypt",
+    "password": "password hashed with bcrypt",
     "meta": {},
 }
 ```
