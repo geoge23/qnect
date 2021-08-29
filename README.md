@@ -1,5 +1,5 @@
 # Qnect
-![Qnect logo](https://geoge.ml/imgs/qnect.png)
+![Qnect logo](https://geoge.co/data/imgs/qnect.png)
 
 ## An alternative UI for Home Assistant
 __This is a personal project and uses an internal (and bad) authentication system. It is not intended for production deployment.__
@@ -13,7 +13,7 @@ The interface only supports entities that have a distinct on/off state (switches
 The server also requires access to a MongoDB installation for authentication. The format of the user documents is also shown below.
 
 ### Example Screenshot
-![Screenshot](https://geoge.ml/imgs/qnect%20smart%20home%20manager.png)
+![Screenshot](https://geoge.co/data/imgs/qnect%20smart%20home%20manager.png)
 
 ### Example Config
 This config should be in the same directory as the index.ts and named config.yaml
