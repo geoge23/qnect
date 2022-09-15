@@ -3,9 +3,6 @@
 # Qnect
 
 ## An alternative UI for Home Assistant
-__This is a personal project and uses an internal (and bad) authentication system. It is not intended for production deployment.__
-
-__Many features may be buggy or broken. If you are looking for a stable and better documented alternative, please look elsewhere__
 
 I developed this program to help my parents (who struggle with technology) with accessing Home Assistant. They found the endless Lovelace screens to be confusing, so I developed this to ease their experience while accessing the few entities they cared about. 
 
